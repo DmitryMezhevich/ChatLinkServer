@@ -1,0 +1,1 @@
+getEmail: SELECT * FROM "Mail_Registration" WHERE email = $1;
