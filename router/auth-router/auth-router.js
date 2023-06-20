@@ -8,7 +8,7 @@ router.post(
 )
 router.post(
     '/auth/sendVerificationCode',
-    authController.cheakVerificationCodeByEmail
+    authController.cheakVerificationCode
 )
 
 module.exports = router

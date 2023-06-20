@@ -4,3 +4,6 @@ node_modules/
 # dotenv environment variable files
 .env
 .env.local
+
+# form for creating tables in SQL
+createTable.sql

@@ -1,5 +1,5 @@
 require('dotenv').config({ path: './configuration/.env.' })
-const router = require('./router/auth-router/auth-router')
+const mountRouter = require('./router/mountRouter')
 const express = require('express')
 
 const PORT = process.env.PORT || 3000
@@ -7,6 +7,6 @@ const PORT = process.env.PORT || 3000
 const app = express()
 
 app.use(express.json())
-app.use('/API', router)
+mountRouter(app)
 
 app.listen(PORT, () => console.log(`Server is running on ${PORT} port!`))

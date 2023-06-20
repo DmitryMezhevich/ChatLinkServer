@@ -1,19 +1,5 @@
-const sqlRequest = require('../../helpers/dbSQL-helpers/requestSQL-helper')
+const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper')
 
-class AuthController {
-    async sendVerificationCodeByEmail(req, res, next) {
-        const result = await sqlRequest.getEmailForVerificationCode(
-            req.body.email
-        )
-
-        if (!result) {
-            res.status(403).send('Error')
-        }
-
-        res.json(result.rows[0])
-    }
-
-    async cheakVerificationCodeByEmail(req, res, next) {}
-}
+class AuthController {}
 
 module.exports = new AuthController()
