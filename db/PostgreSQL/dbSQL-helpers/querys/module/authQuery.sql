@@ -1,10 +1,7 @@
 // SELECT
 
     // 
-    getUserWithEmail:           SELECT * FROM "users" WHERE user_email = $1;
-
-    // 
-    getUserWithUserName:        SELECT * FROM "users" WHERE user_name = $1;
+    getUser:                    SELECT * FROM "users" WHERE user_id = $1 OR user_email = $2 OR user_name = $3;
 
     // 
     getDevice:                  SELECT user_devices.*

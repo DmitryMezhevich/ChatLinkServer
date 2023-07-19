@@ -1,12 +1,15 @@
-require('dotenv').config({ path: './configuration/.env.' })
-const mountRouter = require('./router/mountRouter')
-const express = require('express')
+const express = require('express');
 
-const PORT = process.env.PORT || 3000
+require('dotenv').config({ path: './configuration/.env.' });
+const errorMiddleware = require('./middleware/error-middleware');
+const mountRouter = require('./router/mountRouter');
 
-const app = express()
+const PORT = process.env.PORT || 3000;
 
-app.use(express.json())
-mountRouter(app)
+const app = express();
 
-app.listen(PORT, () => console.log(`Server is running on ${PORT} port!`))
+app.use(express.json());
+mountRouter(app);
+app.use(errorMiddleware);
+
+app.listen(PORT, () => console.log(`Server is running on ${PORT} port!`));

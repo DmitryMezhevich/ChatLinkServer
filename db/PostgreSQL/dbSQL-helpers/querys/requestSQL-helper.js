@@ -1,6 +1,16 @@
-const dbRequest = require('../index')
-const sqlQuery = require('./module/queryHelper').queries
+const dbRequest = require('../index');
+const sqlQuery = require('./module/queryHelper').queries;
 
-class RequestSQLHelper {}
+class RequestSQLHelper {
+    async getUser(userEmail, userID = null, userName = null) {
+        const { rows } = await dbRequest(sqlQuery.getUser, [
+            userID,
+            userEmail,
+            userName,
+        ]);
 
-module.exports = new RequestSQLHelper()
+        return rows[0];
+    }
+}
+
+module.exports = new RequestSQLHelper();

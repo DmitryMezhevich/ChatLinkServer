@@ -1,0 +1,33 @@
+const AuthError = require('../../exceptions/auth-error');
+
+class ValidateAuth {
+    login(req, res, next) {
+        const { user, user_password } = req.body;
+
+        if (!user) {
+            return next(
+                AuthError.BadRequest(
+                    'Required field',
+                    `You must have the 'user' field in the request body.`,
+                    req,
+                    undefined
+                )
+            );
+        }
+
+        if (!user_password) {
+            return next(
+                AuthError.BadRequest(
+                    'Required field',
+                    `You must have the 'user_password' field in the request body.`,
+                    req,
+                    undefined
+                )
+            );
+        }
+
+        next();
+    }
+}
+
+module.exports = new ValidateAuth();
