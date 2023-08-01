@@ -1,27 +1,47 @@
-const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper');
-const AuthError = require('../../exceptions/auth-error');
+const authService = require('../../services/auth/auth-service');
+const tokenService = require('../../services/auth/token-service');
+const UserDto = require('../../dtos/user-dto');
 
 class AuthController {
     async login(req, res, next) {
         try {
-            const { user, user_password } = req.body;
+            const { user, user_password: userPassword } = req.body;
 
-            const client = await sqlRequest.getUser(user);
+            const client = await authService.login(user, userPassword, req);
 
-            if (!client) {
-                throw AuthError.UnauthorizedError(
-                    `User ${req.body.user} does not exist`,
-                    req
-                );
-            }
+            const { device_id: deviceID } =
+                await authService.registrationDevice(client.user_id, req);
 
-            if (user_password !== client.user_password_hash) {
-                throw AuthError.UnauthorizedError('Invalid password', req);
-            }
+            const tokens = tokenService.generateTokens({
+                deviceID: deviceID,
+                userID: client.user_id,
+            });
 
-            res.send(client);
+            await tokenService.saveRefreshToken(deviceID, tokens.refreshToken);
+
+            res.send(new UserDto({ ...client, ...tokens }));
         } catch (error) {
-            console.log(error);
+            next(error);
+        }
+    }
+
+    async logout(req, res, next) {
+        try {
+            await authService.logout(req.user.deviceID);
+            res.send();
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async registratonEmail(req, res, next) {
+        try {
+            const { user_email: userEmail } = req.body;
+
+            const userID = await authService.registrationEmail(userEmail);
+
+            res.json({ user_id: userID });
+        } catch (error) {
             next(error);
         }
     }

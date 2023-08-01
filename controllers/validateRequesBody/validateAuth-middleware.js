@@ -28,6 +28,21 @@ class ValidateAuth {
 
         next();
     }
+
+    registerEmail(req, res, next) {
+        const { user_email } = req.body;
+
+        if (!user_email) {
+            return next(
+                AuthError.BadRequest(
+                    'Required field',
+                    `You must have the 'user_email' field in the request body.`
+                )
+            );
+        }
+
+        next();
+    }
 }
 
 module.exports = new ValidateAuth();

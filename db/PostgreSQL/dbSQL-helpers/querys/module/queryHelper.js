@@ -1,29 +1,37 @@
-const fs = require('fs')
+const fs = require('fs');
 
 class QueryHelper {
     constructor() {
-        this.queries = {}
-        this._loadQueries()
+        this.queries = {};
+        this.#loadQueries();
     }
 
-    _loadQueries() {
-        const sqlFile = fs.readFileSync(`${__dirname}/authQuery.sql`, 'utf8')
-        const queries = sqlFile.split('\n')
+    #loadQueries() {
+        const sqlFile = fs.readFileSync(`${__dirname}/authQuery.sql`, 'utf8');
+        const queries = sqlFile.split('\n');
+
+        let tempQueryName = '';
 
         queries.forEach((query) => {
             if (!query.includes('//') && query.length > 0) {
-                const trimmedQuery = query.trim()
+                const trimmedQuery = query.trim();
 
                 if (trimmedQuery) {
-                    const [queryName, queryString] = trimmedQuery.split(':')
+                    const [queryName, queryString] = trimmedQuery.split(':');
 
                     if (queryName && queryString) {
-                        this.queries[queryName.trim()] = queryString.trim()
+                        this.queries[queryName] = queryString.trim();
+                    }
+
+                    if (queryString) {
+                        tempQueryName = queryName;
+                    } else {
+                        this.queries[tempQueryName] += ` ${queryName}`;
                     }
                 }
             }
-        })
+        });
     }
 }
 
-module.exports = new QueryHelper()
+module.exports = new QueryHelper();

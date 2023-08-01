@@ -1,3 +1,5 @@
+require('dotenv').config({ path: './configuration/.env.local' });
+
 const express = require('express');
 
 require('dotenv').config({ path: './configuration/.env.' });
