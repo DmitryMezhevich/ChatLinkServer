@@ -71,7 +71,7 @@ class AuthService {
             await sqlRequest.apdateVerifyCodeForEmail(userID, verifyCode.hash);
         }
 
-        if (!isActivate) {
+        if (isActivate === undefined) {
             userID = await sqlRequest.registerNewEmail(email, verifyCode.hash);
         }
 

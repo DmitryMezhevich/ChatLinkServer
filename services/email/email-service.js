@@ -1,5 +1,7 @@
-const nodemailer = require('nodemailer');
 const fs = require('fs/promises');
+
+const nodemailer = require('nodemailer');
+const Handlebars = require('handlebars');
 
 class EmailService {
     constructor() {
@@ -16,24 +18,23 @@ class EmailService {
     }
 
     async sendVerifyCode(toEmail, verifyCode) {
-        const form = await fs.readFile('./services/email/form.html');
-        const message = {
-            from: 'ChatLink',
-            to: toEmail,
-            subject: 'Activate',
-            html: form,
-        };
+        const form = await fs.readFile(
+            './services/email/forms/activateEmail.html',
+            'utf-8'
+        );
 
-        // const message = {
-        //     from: 'ChatLink',
-        //     to: toEmail,
-        //     subject: 'Activate',
-        //     html: `
-        //         <div>
-        //             <h1>Verify code: ${verifyCode}</h1>
-        //         </div>
-        //     `,
-        // };
+        const template = Handlebars.compile(form);
+        const htmlResponse = template({
+            email: toEmail,
+            verifyCode: verifyCode,
+        });
+
+        const message = {
+            from: `ChatLink <${process.env.SMTP_USER}>`,
+            to: toEmail,
+            subject: 'Activate account',
+            html: htmlResponse,
+        };
 
         await this.transporter.sendMail(message);
     }
