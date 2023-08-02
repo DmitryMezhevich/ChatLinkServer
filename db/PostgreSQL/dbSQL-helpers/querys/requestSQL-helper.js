@@ -48,7 +48,7 @@ class RequestSQLHelper {
         }
     }
 
-    async insertNewEmail(email, hashVerifyCode) {
+    async registerNewEmail(email, hashVerifyCode) {
         try {
             await dbRequest(sqlQuery.begin);
             const { rows } = await dbRequest(sqlQuery.insertNewEmail, [email]);
@@ -66,7 +66,7 @@ class RequestSQLHelper {
         }
     }
 
-    async apdateVerifyCodeByEmail(userID, hashVerifyCode) {
+    async apdateVerifyCodeForEmail(userID, hashVerifyCode) {
         await dbRequest(sqlQuery.apdateVerificationCodeByEmail, [
             userID,
             hashVerifyCode,

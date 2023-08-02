@@ -1,9 +1,16 @@
 const bcrypt = require('bcrypt');
 
 const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper');
+const emalService = require('../email/email-service');
 const AuthError = require('../../exceptions/auth-error');
 
 class AuthService {
+    async #generateVerificationCode() {
+        const code = Math.floor(Math.random() * 100_000);
+        const hash = await bcrypt.hash(code.toString(), 12);
+        return { code, hash };
+    }
+
     async getUser(user) {
         const client = await sqlRequest.getUser(user);
         return client ?? {};
@@ -48,7 +55,7 @@ class AuthService {
     }
 
     async registrationEmail(email) {
-        const { user_id: userID, user_email_isactivate: isActivate } =
+        let { user_id: userID, user_email_isactivate: isActivate } =
             await this.getUser(email);
 
         if (isActivate) {
@@ -58,21 +65,19 @@ class AuthService {
             );
         }
 
-        const verifyCode = Math.floor(Math.random() * 100_000);
-        const hashVerifyCode = await bcrypt.hash(verifyCode.toString(), 12);
+        const verifyCode = await this.#generateVerificationCode();
 
         if (isActivate !== undefined && !isActivate) {
-            await sqlRequest.apdateVerifyCodeByEmail(userID, hashVerifyCode);
-
-            return userID;
-        } else {
-            const newUserID = await sqlRequest.insertNewEmail(
-                email,
-                hashVerifyCode
-            );
-
-            return newUserID;
+            await sqlRequest.apdateVerifyCodeForEmail(userID, verifyCode.hash);
         }
+
+        if (!isActivate) {
+            userID = await sqlRequest.registerNewEmail(email, verifyCode.hash);
+        }
+
+        await emalService.sendVerifyCode(email, verifyCode.code);
+
+        return userID;
     }
 }
 
