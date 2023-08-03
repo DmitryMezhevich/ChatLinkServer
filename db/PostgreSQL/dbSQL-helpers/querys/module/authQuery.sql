@@ -54,7 +54,7 @@
                                 SET user_name = $1, 
                                     user_password_hash = $2, 
                                     user_avatar_url = $3
-                                WHERE user_id = $4 RETURNING *;
+                                WHERE user_id = $4;
 
 // DELETE
 

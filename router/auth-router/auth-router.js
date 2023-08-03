@@ -6,9 +6,9 @@ const authMiddleware = require('../../middleware/auth-middleware');
 
 const router = new Router();
 
-router.post('/login', validateAuthRequest.login, authController.login);
+// router.post('/login', validateAuthRequest.login, authController.login);
 
-router.delete('/logout', authMiddleware, authController.logout);
+// router.delete('/logout', authMiddleware, authController.logout);
 
 router.post('/login/2fa/verify');
 

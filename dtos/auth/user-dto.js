@@ -8,13 +8,13 @@ module.exports = class UserDto {
     enable_2FA;
 
     constructor(module) {
-        this.user_id = module.user_id;
-        this.user_name = module.user_name ?? null;
-        this.user_email = module.user_email;
-        this.user_avatar_url = module.user_avatar_url;
+        this.user_id = module.userID;
+        this.user_name = module.userName ?? null;
+        this.user_email = module.userEmail;
+        this.user_avatar_url = module.userAvatarURL ?? null;
         this.success_token = module.successToken ?? null;
         this.refresh_token = module.refreshToken ?? null;
-        this.email_isActivate = module.user_email_isactivate;
-        this.enable_2FA = module.enable_2fa;
+        this.email_isActivate = module.emailIsActivate;
+        this.enable_2FA = module.enable2FA;
     }
 };

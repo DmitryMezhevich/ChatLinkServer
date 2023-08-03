@@ -1,15 +1,16 @@
 const dbRequest = require('../../index');
 const sqlQuery = require('./module/queryHelper').queries;
+const UserModule = require('../../../../models/auth/user-model');
 
 class RequestSQLHelper {
-    async getUser(userEmail, userID = null, userName = null) {
+    async getUser({ userEmail, userID, userName }) {
         const { rows } = await dbRequest(sqlQuery.getUser, [
-            userID,
-            userEmail,
-            userName,
+            userID ?? null,
+            userEmail ?? null,
+            userName ?? null,
         ]);
 
-        return rows[0];
+        return new UserModule(rows[0] ?? {});
     }
 
     async createDevice(userID, deviceName, deviceNameApp, deviceIP) {
@@ -86,7 +87,7 @@ class RequestSQLHelper {
             await dbRequest(sqlQuery.deleteVerifyCodeByEmail, [userID]);
             const { rows } = await dbRequest(sqlQuery.activateEmail, [userID]);
             await dbRequest(sqlQuery.commit);
-            return rows[0];
+            return new UserModule(rows[0] ?? {});
         } catch (error) {
             await dbRequest(sqlQuery.rollback);
             throw error;
@@ -96,20 +97,19 @@ class RequestSQLHelper {
     async createNewUser(user, device, tokens) {
         try {
             await dbRequest(sqlQuery.begin);
-            const { rows: clients } = await dbRequest(
+            await dbRequest(
                 sqlQuery.createNewUser,
-                user.getArrayFormat()
+                user.convertToArrayForSQL()
             );
             await dbRequest(
                 sqlQuery.createDevice,
-                device.getArrayFormat(user.userID)
+                device.convertToArrayForSQL()
             );
             await dbRequest(sqlQuery.insertRefreshToken, [
                 device.deviceID,
                 tokens.refreshToken,
             ]);
             await dbRequest(sqlQuery.commit);
-            return { ...clients[0] };
         } catch (error) {
             await dbRequest(sqlQuery.rollback);
             throw error;

@@ -13,10 +13,6 @@ class TokenService {
         return { successToken, refreshToken };
     }
 
-    async saveRefreshToken(deviceID, token) {
-        await sqlRequest.insertRefreshToken(deviceID, token);
-    }
-
     async validationSuccesToken(token) {
         const payloud = await jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
