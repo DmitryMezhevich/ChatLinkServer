@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
+const moment = require('moment');
 
+const timestep = require('../../constants/timestep');
 const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper');
 const emalService = require('../email/email-service');
 const AuthError = require('../../exceptions/auth-error');
@@ -9,6 +11,10 @@ class AuthService {
         const code = Math.floor(Math.random() * 100_000);
         const hash = await bcrypt.hash(code.toString(), 12);
         return { code, hash };
+    }
+
+    async getHashPassword(passord) {
+        return await bcrypt.hash(passord, 12);
     }
 
     async getUser(user) {
@@ -75,9 +81,40 @@ class AuthService {
             userID = await sqlRequest.registerNewEmail(email, verifyCode.hash);
         }
 
-        await emalService.sendVerifyCode(email, verifyCode.code);
-
+        await emalService.sendVerifyCodeForEmail(email, verifyCode.code);
         return userID;
+    }
+
+    async verifyEmail(userID, userVerifyCode) {
+        const verifyData = await sqlRequest.getVerifyDataByEmail(userID);
+        if (!verifyData) {
+            throw AuthError.BadRequest(
+                'Invalid user',
+                'This user does not exists'
+            );
+        }
+
+        const { verification_code: verifyCode, created_at: createdAt } =
+            verifyData;
+
+        const createdDate = moment(createdAt);
+        const diff = moment().diff(createdDate, 'seconds');
+        const verify = await bcrypt.compare(userVerifyCode, verifyCode);
+
+        if (timestep.DAY_OF_SECONDS < diff || !verify) {
+            throw AuthError.BadRequest(
+                'Invalid code',
+                'This verification code is invalid'
+            );
+        }
+
+        const user = await sqlRequest.activateEmail(userID);
+        return user;
+    }
+
+    async createNewUser(user, device, tokens) {
+        const client = await sqlRequest.createNewUser(user, device, tokens);
+        return client;
     }
 }
 

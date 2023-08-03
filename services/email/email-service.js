@@ -4,6 +4,17 @@ const nodemailer = require('nodemailer');
 const Handlebars = require('handlebars');
 
 class EmailService {
+    async #sendEmail(recipient, titel, message) {
+        const letter = {
+            from: `ChatLink <${process.env.SMTP_USER}>`,
+            to: recipient,
+            subject: titel,
+            html: message,
+        };
+
+        await this.transporter.sendMail(letter);
+    }
+
     constructor() {
         this.transporter = nodemailer.createTransport({
             pool: true,
@@ -17,7 +28,7 @@ class EmailService {
         });
     }
 
-    async sendVerifyCode(toEmail, verifyCode) {
+    async sendVerifyCodeForEmail(address, verifyCode) {
         const form = await fs.readFile(
             './services/email/forms/activateEmail.html',
             'utf-8'
@@ -25,18 +36,12 @@ class EmailService {
 
         const template = Handlebars.compile(form);
         const htmlResponse = template({
-            email: toEmail,
+            email: address,
             verifyCode: verifyCode,
+            emailSupport: process.env.SMTP_USER,
         });
 
-        const message = {
-            from: `ChatLink <${process.env.SMTP_USER}>`,
-            to: toEmail,
-            subject: 'Activate account',
-            html: htmlResponse,
-        };
-
-        await this.transporter.sendMail(message);
+        await this.#sendEmail(address, 'Activate account', htmlResponse);
     }
 }
 

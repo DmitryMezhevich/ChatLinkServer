@@ -1,0 +1,11 @@
+const SECOND = 1;
+const MINUTE_OF_SECONDS = SECOND * 60;
+const HOUR_OF_SECONDS = MINUTE_OF_SECONDS * 60;
+const DAY_OF_SECONDS = HOUR_OF_SECONDS * 24;
+
+module.exports = {
+    SECOND,
+    MINUTE_OF_SECONDS,
+    HOUR_OF_SECONDS,
+    DAY_OF_SECONDS,
+};

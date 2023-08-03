@@ -9,11 +9,12 @@ module.exports = class UserDto {
 
     constructor(module) {
         this.user_id = module.user_id;
-        this.user_name = module.user_name;
+        this.user_name = module.user_name ?? null;
         this.user_email = module.user_email;
         this.user_avatar_url = module.user_avatar_url;
-        this.success_token = module.successToken;
-        this.refresh_token = module.refreshToken;
+        this.success_token = module.successToken ?? null;
+        this.refresh_token = module.refreshToken ?? null;
+        this.email_isActivate = module.user_email_isactivate;
         this.enable_2FA = module.enable_2fa;
     }
 };

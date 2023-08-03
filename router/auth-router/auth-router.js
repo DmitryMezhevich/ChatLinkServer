@@ -20,6 +20,18 @@ router.post(
     authController.registratonEmail
 );
 
+router.post(
+    '/register/email/activate',
+    validateAuthRequest.verifyEmail,
+    authController.verifyEmail
+);
+
+router.post(
+    '/register',
+    validateAuthRequest.verifyUserData,
+    authController.registratonUser
+);
+
 router.post('/register');
 
 router.post('/password/reset');

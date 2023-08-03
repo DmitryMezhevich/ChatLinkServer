@@ -72,6 +72,49 @@ class RequestSQLHelper {
             hashVerifyCode,
         ]);
     }
+
+    async getVerifyDataByEmail(userID) {
+        const { rows } = await dbRequest(sqlQuery.getVerifyDataByEmail, [
+            userID,
+        ]);
+        return rows[0];
+    }
+
+    async activateEmail(userID) {
+        try {
+            await dbRequest(sqlQuery.begin);
+            await dbRequest(sqlQuery.deleteVerifyCodeByEmail, [userID]);
+            const { rows } = await dbRequest(sqlQuery.activateEmail, [userID]);
+            await dbRequest(sqlQuery.commit);
+            return rows[0];
+        } catch (error) {
+            await dbRequest(sqlQuery.rollback);
+            throw error;
+        }
+    }
+
+    async createNewUser(user, device, tokens) {
+        try {
+            await dbRequest(sqlQuery.begin);
+            const { rows: clients } = await dbRequest(
+                sqlQuery.createNewUser,
+                user.getArrayFormat()
+            );
+            await dbRequest(
+                sqlQuery.createDevice,
+                device.getArrayFormat(user.userID)
+            );
+            await dbRequest(sqlQuery.insertRefreshToken, [
+                device.deviceID,
+                tokens.refreshToken,
+            ]);
+            await dbRequest(sqlQuery.commit);
+            return { ...clients[0] };
+        } catch (error) {
+            await dbRequest(sqlQuery.rollback);
+            throw error;
+        }
+    }
 }
 
 module.exports = new RequestSQLHelper();
