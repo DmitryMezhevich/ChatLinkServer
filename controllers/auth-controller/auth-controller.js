@@ -1,4 +1,4 @@
-const authService = require('../../services/auth/auth-service');
+const authRegistartion = require('../../services/auth/authRegistration-service');
 const UserDto = require('../../dtos/auth/user-dto');
 const RegistrationModel = require('../../models/auth/regitration-model');
 const DeviceModel = require('../../models/auth/device-model');
@@ -8,7 +8,7 @@ class AuthController {
         try {
             const { user_email: userEmail } = req.body;
 
-            const userID = await authService.registrationEmail(userEmail);
+            const userID = await authRegistartion.registrationEmail(userEmail);
 
             res.json({ user_id: userID });
         } catch (error) {
@@ -20,7 +20,7 @@ class AuthController {
         try {
             const { user_id: userID, verify_code: verifyCode } = req.body;
 
-            const user = await authService.verifyEmail(userID, verifyCode);
+            const user = await authRegistartion.verifyEmail(userID, verifyCode);
 
             res.json(new UserDto(user));
         } catch (error) {
@@ -36,7 +36,7 @@ class AuthController {
                 ...registrationModule,
             });
 
-            const client = await authService.createNewUser(
+            const client = await authRegistartion.createNewUser(
                 registrationModule,
                 deviceModule
             );

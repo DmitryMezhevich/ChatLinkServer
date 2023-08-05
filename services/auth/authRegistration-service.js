@@ -1,19 +1,9 @@
-const bcrypt = require('bcrypt');
-const moment = require('moment');
-
-const timestep = require('../../constants/timestep');
 const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper');
-const tokenService = require('./token-service');
 const emalService = require('../email/email-service');
+const authHelper = require('./helpers/auth-helper');
 const AuthError = require('../../exceptions/auth-error');
 
-class AuthService {
-    async #generateVerificationCode() {
-        const code = Math.floor(Math.random() * 100_000);
-        const hash = await bcrypt.hash(code.toString(), 12);
-        return { code, hash };
-    }
-
+class AuthRegistartion {
     // Registartion new user email
     async registrationEmail(email) {
         let { userID, emailIsActivate } = await sqlRequest.getUser({
@@ -21,13 +11,10 @@ class AuthService {
         });
 
         if (emailIsActivate) {
-            throw AuthError.BadRequest(
-                'This user exists',
-                `User ${email} exists`
-            );
+            throw AuthError.UserExists(email);
         }
 
-        const verifyCode = await this.#generateVerificationCode();
+        const verifyCode = await authHelper.generateVerificationCode();
 
         if (emailIsActivate !== undefined && !emailIsActivate) {
             await sqlRequest.apdateVerifyCodeForEmail(userID, verifyCode.hash);
@@ -45,24 +32,20 @@ class AuthService {
     async verifyEmail(userID, userVerifyCode) {
         const verifyData = await sqlRequest.getVerifyDataByEmail(userID);
         if (!verifyData) {
-            throw AuthError.BadRequest(
-                'Invalid user',
-                'This user does not exists'
-            );
+            throw AuthError.UserNotExists();
         }
 
         const { verification_code: verifyCode, created_at: createdAt } =
             verifyData;
 
-        const createdDate = moment(createdAt);
-        const diff = moment().diff(createdDate, 'seconds');
-        const verify = await bcrypt.compare(userVerifyCode, verifyCode);
+        const verify = await authHelper.verifyCode(
+            createdAt,
+            userVerifyCode,
+            verifyCode
+        );
 
-        if (timestep.DAY_OF_SECONDS < diff || !verify) {
-            throw AuthError.BadRequest(
-                'Invalid code',
-                'This verification code is invalid'
-            );
+        if (!verify) {
+            throw AuthError.InvalidVerifyCode();
         }
 
         const user = await sqlRequest.activateEmail(userID);
@@ -76,26 +59,20 @@ class AuthService {
         });
 
         if (userModel.userName) {
-            throw AuthError.BadRequest(
-                'This user exists',
-                `User ${userModel.userEmail} exists`
-            );
+            throw AuthError.UserExists(userModel.userEmail);
         }
 
         if (!userModel || !userModel.emailIsActivate) {
-            throw AuthError.BadRequest('Bad request', 'Invalid user data');
+            throw AuthError.EmailNotActivate(userModel.userEmail);
         }
 
-        const userPasswordHash = await bcrypt.hash(
+        const { userPasswordHash, tokens } = await authHelper.getSecurityData(
             registrationModule.userPassword,
-            12
+            userModel.userID,
+            deviceModule.deviceID
         );
-        const tokens = await tokenService.generateTokens({
-            userID: userModel.userID,
-            deviceID: deviceModule.deviceID,
-        });
 
-        userModel.userInfoUpdates({
+        userModel.updatesUserInfo({
             ...registrationModule,
             ...userPasswordHash,
         });
@@ -106,4 +83,4 @@ class AuthService {
     }
 }
 
-module.exports = new AuthService();
+module.exports = new AuthRegistartion();

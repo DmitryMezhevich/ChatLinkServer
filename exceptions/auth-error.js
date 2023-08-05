@@ -13,7 +13,7 @@ module.exports = class AuthError extends BaseError {
         };
     }
 
-    static BadRequest(titel, detail = '', errorCode = 0) {
+    static BadRequest(titel = 'Bad request', detail = '', errorCode = 0) {
         return new AuthError(400, titel, detail, errorCode);
     }
 
@@ -23,5 +23,30 @@ module.exports = class AuthError extends BaseError {
 
     static UserNotFound(user, detail = '') {
         return new AuthError(404, `User ${user} does not exist`, detail);
+    }
+
+    static UserExists(user) {
+        return this.BadRequest(undefined, `User ${user} exists`);
+    }
+
+    static UserNotExists(user) {
+        return this.BadRequest(
+            undefined,
+            `User${(user ?? ` ${user} `, ' ')}does not exists`
+        );
+    }
+
+    static InvalidVerifyCode() {
+        return this.BadRequest(
+            'Invalid verify code',
+            'This verification code is invalid'
+        );
+    }
+
+    static EmailNotActivate(email) {
+        return this.BadRequest(
+            'Verify user email',
+            `Email ${email} not activated`
+        );
     }
 };

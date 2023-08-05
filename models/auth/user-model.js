@@ -19,7 +19,7 @@ module.exports = class UserModel {
         this.createdAt = module.created_at;
     }
 
-    userInfoUpdates(module) {
+    updatesUserInfo(module) {
         this.userName = module.userName;
         this.userPasswordHash = module.userPasswordHash;
         this.userAvatarURL = module.userAvatarURL;
