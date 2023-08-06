@@ -4,6 +4,7 @@ module.exports = class UserModel {
     userPasswordHash;
     userEmail;
     userAvatarURL;
+    deviceID;
     enable2FA;
     emailIsActivate;
     createdAt;
@@ -14,6 +15,7 @@ module.exports = class UserModel {
         this.userName = module.user_name;
         this.userEmail = module.user_email;
         this.userAvatarURL = module.user_avatar_url;
+        this.deviceID = module.device_id;
         this.enable2FA = module.enable_2fa;
         this.emailIsActivate = module.user_email_isactivate;
         this.createdAt = module.created_at;
@@ -33,4 +35,6 @@ module.exports = class UserModel {
             this.userID,
         ];
     }
+
+    
 };

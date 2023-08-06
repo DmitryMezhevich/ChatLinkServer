@@ -15,13 +15,17 @@ class AuthHelper {
         return await bcrypt.hash(value, 12);
     }
 
+    async passwordCompare(userPassword, dbPassword) {
+        return await bcrypt.compare(userPassword, dbPassword);
+    }
+
     async getSecurityData(userPassword, userID, deviceID) {
         const userPasswordHash = await this.hash(userPassword);
         const tokens = await tokenService.generateTokens({
             userID: userID,
             deviceID: deviceID,
         });
-        return userPasswordHash, tokens;
+        return { userPasswordHash, tokens };
     }
 
     async verifyCode(createTime, firstValue, secondValue) {

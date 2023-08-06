@@ -4,6 +4,10 @@
     getUser:                    SELECT * FROM users WHERE user_id = $1 OR user_email = $2 OR user_name = $3
                                 LIMIT 1;
 
+    // 
+    getUsers:                   SELECT * FROM users WHERE user_id = $1 OR user_email = $2 OR user_name = $3
+                                LIMIT 2;
+
     //
     getUserDevice:              SELECT * FROM user_devices WHERE device_id = $1
                                 LIMIT 1;

@@ -49,4 +49,8 @@ module.exports = class AuthError extends BaseError {
             `Email ${email} not activated`
         );
     }
+
+    static InvalidPassword() {
+        return this.BadRequest('Invalid password', 'This password is invalid');
+    }
 };

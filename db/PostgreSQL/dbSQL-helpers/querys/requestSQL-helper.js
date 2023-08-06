@@ -13,6 +13,18 @@ class RequestSQLHelper {
         return new UserModule(rows[0] ?? {});
     }
 
+    async getUsers({ userEmail, userID, userName }) {
+        const { rows } = await dbRequest(sqlQuery.getUser, [
+            userID ?? null,
+            userEmail ?? null,
+            userName ?? null,
+        ]);
+
+        return rows.map((user) => {
+            return new UserModule(user ?? {});
+        });
+    }
+
     async createDevice(userID, deviceName, deviceNameApp, deviceIP) {
         const { rows } = await dbRequest(sqlQuery.createDevice, [
             userID,

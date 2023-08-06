@@ -1,9 +1,11 @@
 const authRegistartion = require('../../services/auth/authRegistration-service');
+const auth = require('../../services/auth/auth-service');
 const UserDto = require('../../dtos/auth/user-dto');
 const RegistrationModel = require('../../models/auth/regitration-model');
 const DeviceModel = require('../../models/auth/device-model');
 
 class AuthController {
+    // REGISTRATION
     async registratonEmail(req, res, next) {
         try {
             const { user_email: userEmail } = req.body;
@@ -42,6 +44,19 @@ class AuthController {
             );
 
             res.send(new UserDto(client));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    //LOGIN, LOGOUT
+    async login(req, res, next) {
+        try {
+            const { user, user_password: userPassword } = req.body;
+
+            const client = await auth.login(user, userPassword);
+
+            return client;
         } catch (error) {
             next(error);
         }

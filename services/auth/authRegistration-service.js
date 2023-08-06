@@ -54,9 +54,16 @@ class AuthRegistartion {
 
     // Create new user with verify email
     async createNewUser(registrationModule, deviceModule) {
-        const userModel = await sqlRequest.getUser({
+        const users = await sqlRequest.getUsers({
             userID: registrationModule.userID,
+            userName: registrationModule.userName,
         });
+
+        if (users.length > 1) {
+            throw AuthError.UserExists(registrationModule.userName);
+        }
+
+        const userModel = users[0];
 
         if (userModel.userName) {
             throw AuthError.UserExists(userModel.userEmail);
