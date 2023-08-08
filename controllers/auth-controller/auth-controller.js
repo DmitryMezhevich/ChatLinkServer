@@ -43,7 +43,7 @@ class AuthController {
                 deviceModule
             );
 
-            res.send(new UserDto(client));
+            res.json(new UserDto(client));
         } catch (error) {
             next(error);
         }
@@ -53,10 +53,13 @@ class AuthController {
     async login(req, res, next) {
         try {
             const { user, user_password: userPassword } = req.body;
+            const deviceModule = new DeviceModel({
+                req
+            });
 
-            const client = await auth.login(user, userPassword);
+            const client = await auth.login(user, userPassword, deviceModule);
 
-            return client;
+            res.json(new UserDto(client));
         } catch (error) {
             next(error);
         }

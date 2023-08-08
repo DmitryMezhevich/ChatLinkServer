@@ -12,8 +12,12 @@
     getUserDevice:              SELECT * FROM user_devices WHERE device_id = $1
                                 LIMIT 1;
 
-                                // 
+    // 
     getVerifyDataByEmail:       SELECT * FROM user_email_activate WHERE user_id = $1
+                                LIMIT 1;
+
+    //
+    getData2FA:                 SELECT * FROM device_2FA WHERE device_id = $1
                                 LIMIT 1;
 
     // //
@@ -40,6 +44,10 @@
     insertRefreshToken:         INSERT INTO device_refresh_tokens (device_id, refresh_token)
                                 VALUES ($1, $2);
 
+    //
+    insertNew2FA:               INSERT INTO device_2FA (device_id, verification_code)
+                                VALUES ($1, $2);
+
 // UPDATE
 
     //
@@ -59,6 +67,12 @@
                                     user_password_hash = $2, 
                                     user_avatar_url = $3
                                 WHERE user_id = $4;
+
+    //
+    update2FA:                  UPDATE device_2FA 
+                                SET verification_code = $2,
+                                    created_at = DEFAULT
+                                WHERE device_id = $1;
 
 // DELETE
 

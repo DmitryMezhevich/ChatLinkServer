@@ -81,7 +81,7 @@ class AuthRegistartion {
 
         userModel.updatesUserInfo({
             ...registrationModule,
-            ...userPasswordHash,
+            userPasswordHash,
         });
 
         await sqlRequest.createNewUser(userModel, deviceModule, tokens);

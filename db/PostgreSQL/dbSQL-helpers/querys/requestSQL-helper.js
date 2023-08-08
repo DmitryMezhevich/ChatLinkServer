@@ -93,6 +93,25 @@ class RequestSQLHelper {
         return rows[0];
     }
 
+    async apdateVerifyCodeFor2FA(deviceID, hashVerifyCode) {
+        try {
+            await dbRequest(sqlQuery.begin);
+            const { rows } = await dbRequest(sqlQuery.getData2FA, [deviceID]);
+            if (!rows[0]) {
+                await dbRequest(sqlQuery.insertNew2FA, [
+                    deviceID,
+                    hashVerifyCode,
+                ]);
+            } else {
+                await dbRequest(sqlQuery.update2FA, [deviceID, hashVerifyCode]);
+            }
+            await dbRequest(sqlQuery.commit);
+        } catch (error) {
+            await dbRequest(sqlQuery.rollback);
+            throw error;
+        }
+    }
+
     async activateEmail(userID) {
         try {
             await dbRequest(sqlQuery.begin);
@@ -121,6 +140,20 @@ class RequestSQLHelper {
                 device.deviceID,
                 tokens.refreshToken,
             ]);
+            await dbRequest(sqlQuery.commit);
+        } catch (error) {
+            await dbRequest(sqlQuery.rollback);
+            throw error;
+        }
+    }
+
+    async createNewDevice(device) {
+        try {
+            await dbRequest(sqlQuery.begin);
+            await dbRequest(
+                sqlQuery.createDevice,
+                device.convertToArrayForSQL()
+            );
             await dbRequest(sqlQuery.commit);
         } catch (error) {
             await dbRequest(sqlQuery.rollback);

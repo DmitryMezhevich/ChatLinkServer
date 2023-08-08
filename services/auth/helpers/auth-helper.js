@@ -3,10 +3,11 @@ const moment = require('moment');
 
 const timestep = require('../../../constants/timestep');
 const tokenService = require('../token-service');
+const AuthError = require('../../../exceptions/auth-error');
 
 class AuthHelper {
     async generateVerificationCode() {
-        const code = Math.floor(Math.random() * 100_000);
+        const code = Math.floor(10_000 * (Math.random() + 1));
         const hash = await bcrypt.hash(code.toString(), 12);
         return { code, hash };
     }
@@ -16,7 +17,11 @@ class AuthHelper {
     }
 
     async passwordCompare(userPassword, dbPassword) {
-        return await bcrypt.compare(userPassword, dbPassword);
+        try {
+            return await bcrypt.compare(userPassword, dbPassword);
+        } catch {
+            throw AuthError.InvalidPassword();
+        }
     }
 
     async getSecurityData(userPassword, userID, deviceID) {
@@ -34,6 +39,8 @@ class AuthHelper {
         const verify = await bcrypt.compare(firstValue, secondValue);
         return diff < timestep.DAY_OF_SECONDS && verify;
     }
+
+    
 }
 
 module.exports = new AuthHelper();

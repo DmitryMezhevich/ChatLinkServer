@@ -21,8 +21,8 @@ module.exports = class AuthError extends BaseError {
         return new AuthError(401, 'Unauthorized error', detail);
     }
 
-    static UserNotFound(user, detail = '') {
-        return new AuthError(404, `User ${user} does not exist`, detail);
+    static NotFound(titel = 'Not found', detail = '') {
+        return new AuthError(404, titel, detail);
     }
 
     static UserExists(user) {
@@ -52,5 +52,12 @@ module.exports = class AuthError extends BaseError {
 
     static InvalidPassword() {
         return this.BadRequest('Invalid password', 'This password is invalid');
+    }
+
+    static UserNotHaveFullInfo(email) {
+        return this.NotFound(
+            undefined,
+            `User ${email} don't have full information. Сomplete the registration`
+        );
     }
 };
