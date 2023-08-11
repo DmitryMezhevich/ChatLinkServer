@@ -54,10 +54,23 @@ class AuthController {
         try {
             const { user, user_password: userPassword } = req.body;
             const deviceModule = new DeviceModel({
-                req
+                req,
             });
 
             const client = await auth.login(user, userPassword, deviceModule);
+
+            res.json(new UserDto(client));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async login2FA(req, res, next) {
+        try {
+            const { device_id: deviceID, verification_code: verificationCode } =
+                req.body;
+
+            const client = await auth.login2FA(deviceID, verificationCode);
 
             res.json(new UserDto(client));
         } catch (error) {

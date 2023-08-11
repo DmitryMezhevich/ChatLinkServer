@@ -17,14 +17,11 @@
                                 LIMIT 1;
 
     //
-    getData2FA:                 SELECT * FROM device_2FA WHERE device_id = $1
-                                LIMIT 1;
-
-    // //
-    getDevice:                  SELECT user_devices.*
-                                FROM user_devices 
-                                JOIN users ON user_devices.user_id = users.user_id 
-                                WHERE users.user_id = $1 AND user_devices.device_ip = $2;
+    getData2FA:                 SELECT user_devices.*, users.*
+                                FROM user_devices
+                                JOIN user_devices ON user_devices.user_id = users.user_id 
+                                JOIN user_devices ON user_devices.device_id = device_2FA.device_id 
+                                WHERE user_devices.device_id = $1;
 
 // INSERT
 

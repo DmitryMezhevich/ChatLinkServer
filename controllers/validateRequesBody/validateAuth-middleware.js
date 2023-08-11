@@ -18,6 +18,23 @@ class ValidateAuth {
         next();
     }
 
+    login2FA(req, res, next) {
+        const { device_id, verification_code } = req.body;
+
+        if (!device_id || !verification_code) {
+            return next(
+                AuthError.BadRequest(
+                    'Required field',
+                    `You must have the 'device_id' and 'verification_code' fields in the request body.`,
+                    req,
+                    undefined
+                )
+            );
+        }
+
+        next();
+    }
+
     registerEmail(req, res, next) {
         const { user_email } = req.body;
 

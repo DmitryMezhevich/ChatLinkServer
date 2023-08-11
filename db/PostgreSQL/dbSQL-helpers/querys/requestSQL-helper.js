@@ -93,6 +93,11 @@ class RequestSQLHelper {
         return rows[0];
     }
 
+    async getVerifyDataBy2FA(deviceID) {
+        const { rows } = await dbRequest(sqlQuery.getData2FA, [deviceID]);
+        return rows[0] ?? {};
+    }
+
     async apdateVerifyCodeFor2FA(deviceID, hashVerifyCode) {
         try {
             await dbRequest(sqlQuery.begin);

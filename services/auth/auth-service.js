@@ -50,7 +50,28 @@ class AuthService {
         }
     }
 
-    async login2FA() {}
+    async login2FA(deviceID, userVerifyCode) {
+        const verifyData = await sqlRequest.getVerifyDataBy2FA(deviceID);
+
+        if (!verifyData) {
+            throw AuthError.UserNotExists();
+        }
+
+        const { verification_code: verifyCode, created_at: createdAt } =
+            verifyData;
+
+        const verify = await authHelper.verifyCode(
+            createdAt,
+            userVerifyCode,
+            verifyCode
+        );
+
+        if (!verify) {
+            throw AuthError.InvalidVerifyCode();
+        }
+
+        
+    }
 
     async logout() {}
 }
