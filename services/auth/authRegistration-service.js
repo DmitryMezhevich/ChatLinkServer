@@ -78,9 +78,9 @@ class AuthRegistartion {
         }
 
         client.deviceModel.createNewDevice(headersForDevice);
-        await authHelper.registerNewClient(client, registrationModel);
+        const newClient = await authHelper.registerNewClient(client, registrationModel);
 
-        return client;
+        return newClient;
     }
 }
 

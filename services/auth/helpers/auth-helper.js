@@ -26,15 +26,6 @@ class AuthHelper {
         }
     }
 
-    async getSecurityData(userPassword, userID, deviceID) {
-        const userPasswordHash = await this.hash(userPassword);
-        const tokens = await tokenService.generateTokens({
-            userID: userID,
-            deviceID: deviceID,
-        });
-        return { userPasswordHash, tokens };
-    }
-
     async verifyCode(createTime, firstValue, secondValue) {
         const createdDate = moment(createTime);
         const diff = moment().diff(createdDate, 'seconds');
@@ -104,9 +95,11 @@ class AuthHelper {
             deviceID: user.deviceModel.deviceID,
         });
 
-        user.tokenModel.updateTokens({ ...user.deviceModel, tokens });
+        user.tokenModel.updateTokens({ ...user.deviceModel, ...tokens });
 
         await sqlRequest.createNewUser(user);
+
+        return user;
     }
 
     async registerNewEmail(userID, userEmail) {

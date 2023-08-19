@@ -6,7 +6,7 @@ class AuthService {
     async login(user, password, headersForDevice) {
         const client = await authHelper.getClient(user);
 
-        if (!client) {
+        if (!client.userID) {
             throw AuthError.UserNotExists(user);
         }
 
@@ -43,7 +43,7 @@ class AuthService {
     async login2FA(deviceID, userVerifyCode) {
         const client = await authHelper.getData2FA(deviceID);
 
-        if (!client) {
+        if (!client.userID) {
             throw AuthError.UserNotExists();
         }
 
