@@ -13,7 +13,7 @@
                                 LIMIT 1;
 
     // 
-    getVerifyDataByEmail:       SELECT * FROM user_email_activate WHERE user_id = $1
+    getVerifyDataForEmail:       SELECT * FROM user_email_activate WHERE user_id = $1
                                 LIMIT 1;
 
     //
@@ -34,7 +34,7 @@
                                 VALUES ($1, $2) RETURNING *;
 
     //
-    insertVerifyCodeByEmail:    INSERT INTO user_email_activate (user_id, activate_verification_code)
+    insertVerifyCodeForEmail:    INSERT INTO user_email_activate (user_id, activate_verification_code)
                                 VALUES ($1, $2);
 
     //
@@ -52,7 +52,7 @@
 // UPDATE
 
     //
-    apdateVerificationCodeByEmail:      UPDATE user_email_activate 
+    apdateVerificationCodeForEmail:      UPDATE user_email_activate 
                                         SET activate_verification_code = $2,
                                             activate_created_at = DEFAULT
                                         WHERE user_id = $1;
@@ -60,7 +60,7 @@
     //
     activateEmail:              UPDATE users
                                 SET user_email_isActivate = true
-                                WHERE user_id = $1 RETURNING user_email_isActivate;
+                                WHERE user_id = $1;
     
     //
     createNewUser:              UPDATE users 
@@ -84,10 +84,10 @@
     deleteDevice:               DELETE FROM user_devices WHERE device_id = $1 RETURNING *;
 
     //
-    deleteVerifyCodeByEmail:    DELETE FROM user_email_activate WHERE user_id = $1;
+    deleteVerifyCodeForEmail:    DELETE FROM user_email_activate WHERE user_id = $1;
 
     //
-    deleteVerifyCodeBy2FA:      DELETE FROM device_2fa WHERE device_id = $1;
+    deleteVerifyCodeFor2FA:      DELETE FROM device_2fa WHERE device_id = $1;
 
 // TRANSACTION
 

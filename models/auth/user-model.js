@@ -23,19 +23,21 @@ module.exports = class UserModel {
     resetPasswordModel;
 
     constructor(module) {
-        this.userID = module.user_id ?? uuidv4();
-        this.userPasswordHash = module.user_password_hash;
-        this.userName = module.user_name;
-        this.userEmail = module.user_email ?? module.userEmail;
-        this.userAvatarURL = module.user_avatar_url;
-        this.enable2FA = module.enable_2fa;
-        this.emailIsActivate = module.user_email_isactivate;
-        this.createdAt = module.created_at;
-        this.deviceModel = new DeviceModel(module);
-        this.emailActivateModel = new EmailActivate(module);
-        this.tokenModel = new TokenModel(module);
-        this.twoFAModel = new TwoFAModel(module);
-        this.resetPasswordModel = new ResetPasswordModel(module);
+        if (module) {
+            this.userID = module.user_id ?? uuidv4();
+            this.userPasswordHash = module.user_password_hash;
+            this.userName = module.user_name;
+            this.userEmail = module.user_email ?? module.userEmail;
+            this.userAvatarURL = module.user_avatar_url;
+            this.enable2FA = module.enable_2fa;
+            this.emailIsActivate = module.user_email_isactivate;
+            this.createdAt = module.created_at;
+            this.deviceModel = new DeviceModel(module);
+            this.emailActivateModel = new EmailActivate(module);
+            this.tokenModel = new TokenModel(module);
+            this.twoFAModel = new TwoFAModel(module);
+            this.resetPasswordModel = new ResetPasswordModel(module);
+        }
     }
 
     updatesUserInfo(module) {
@@ -48,6 +50,10 @@ module.exports = class UserModel {
         this.userName = null;
         this.userEmail = null;
         this.userAvatarURL = null;
+    }
+
+    activateUserEmail() {
+        this.emailIsActivate = true;
     }
 
     convertToArrayForSQL() {

@@ -4,9 +4,11 @@ module.exports = class TokenModel {
     successToken;
 
     constructor(module) {
-        this.deviceID = module.device_id || module.deviceID;
-        this.refreshToken = module.refresh_token || module.refreshToken;
-        this.successToken = module.successToken;
+        if (module) {
+            this.deviceID = module.device_id || module.deviceID;
+            this.refreshToken = module.refresh_token || module.refreshToken;
+            this.successToken = module.successToken;
+        }
     }
 
     updateTokens(module) {

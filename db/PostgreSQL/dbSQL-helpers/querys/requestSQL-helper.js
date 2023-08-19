@@ -10,7 +10,7 @@ class RequestSQLHelper {
             userName ?? null,
         ]);
 
-        return new UserModule(rows[0] ?? {});
+        return new UserModule(rows[0]);
     }
 
     async getUsers({ userEmail, userID, userName }) {
@@ -21,7 +21,7 @@ class RequestSQLHelper {
         ]);
 
         return rows.map((user) => {
-            return new UserModule(user ?? {});
+            return new UserModule(user);
         });
     }
 
@@ -46,7 +46,7 @@ class RequestSQLHelper {
             await dbRequest(sqlQuery.begin);
             await dbRequest(sqlQuery.insertRefreshToken, [deviceID, token]);
             if (removeData2FA) {
-                await dbRequest(sqlQuery.deleteVerifyCodeBy2FA, [deviceID]);
+                await dbRequest(sqlQuery.deleteVerifyCodeFor2FA, [deviceID]);
             }
             await dbRequest(sqlQuery.commit);
         } catch (error) {
@@ -73,13 +73,14 @@ class RequestSQLHelper {
     async registerNewEmail(userEmail, userID, hashVerifyCode) {
         try {
             await dbRequest(sqlQuery.begin);
-            const { rows } = await dbRequest(sqlQuery.insertNewEmail, [userID, userEmail]);
-            await dbRequest(sqlQuery.insertVerifyCodeByEmail, [
+
+            await dbRequest(sqlQuery.insertNewEmail, [userID, userEmail]);
+            await dbRequest(sqlQuery.insertVerifyCodeForEmail, [
                 userID,
                 hashVerifyCode,
-            ])
+            ]);
+
             await dbRequest(sqlQuery.commit);
-            return new UserModule(rows[0] ?? {});
         } catch (error) {
             await dbRequest(sqlQuery.rollback);
             throw error;
@@ -87,20 +88,20 @@ class RequestSQLHelper {
     }
 
     async apdateVerifyCodeForEmail(userID, hashVerifyCode) {
-        await dbRequest(sqlQuery.apdateVerificationCodeByEmail, [
+        await dbRequest(sqlQuery.apdateVerificationCodeForEmail, [
             userID,
             hashVerifyCode,
         ]);
     }
 
-    async getVerifyDataByEmail(userID) {
-        const { rows } = await dbRequest(sqlQuery.getVerifyDataByEmail, [
+    async getVerifyDataForEmail(userID) {
+        const { rows } = await dbRequest(sqlQuery.getVerifyDataForEmail, [
             userID,
         ]);
-        return new UserModule(rows[0] ?? {});
+        return new UserModule(rows[0]);
     }
 
-    async getVerifyDataBy2FA(deviceID) {
+    async getVerifyDataFor2FA(deviceID) {
         const { rows } = await dbRequest(sqlQuery.getUserDataTogether2FA, [
             deviceID,
         ]);
@@ -129,10 +130,9 @@ class RequestSQLHelper {
     async activateEmail(userID) {
         try {
             await dbRequest(sqlQuery.begin);
-            await dbRequest(sqlQuery.deleteVerifyCodeByEmail, [userID]);
-            const { rows } = await dbRequest(sqlQuery.activateEmail, [userID]);
+            await dbRequest(sqlQuery.deleteVerifyCodeForEmail, [userID]);
+            await dbRequest(sqlQuery.activateEmail, [userID]);
             await dbRequest(sqlQuery.commit);
-            return rows[0];
         } catch (error) {
             await dbRequest(sqlQuery.rollback);
             throw error;
@@ -152,7 +152,7 @@ class RequestSQLHelper {
             );
             await dbRequest(sqlQuery.insertRefreshToken, [
                 user.deviceModel.deviceID,
-                user.tokensModel.refreshToken,
+                user.tokenModel.refreshToken,
             ]);
             await dbRequest(sqlQuery.commit);
         } catch (error) {

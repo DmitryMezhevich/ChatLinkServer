@@ -75,7 +75,7 @@ class AuthHelper {
     }
 
     async getData2FA(deviceID) {
-        return await sqlRequest.getVerifyDataBy2FA(deviceID);
+        return await sqlRequest.getVerifyDataFor2FA(deviceID);
     }
 
     async removeDevice(deviceID) {
@@ -89,7 +89,7 @@ class AuthHelper {
     }
 
     async activateEmail(userID) {
-        return await sqlRequest.activateEmail(userID);
+        await sqlRequest.activateEmail(userID);
     }
 
     async registerNewClient(user, registartionModel) {

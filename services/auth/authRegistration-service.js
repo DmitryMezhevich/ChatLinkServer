@@ -6,24 +6,27 @@ const UserModel = require('../../models/auth/user-model');
 class AuthRegistartion {
     // Registartion new user email
     async registrationEmail(email) {
-        const user = await sqlRequest.getUser({
+        const client = await sqlRequest.getUser({
             userEmail: email,
         });
 
-        if (user.emailIsActivate) {
-            throw AuthError.UserExists(user.userEmail);
+        if (client.emailIsActivate) {
+            throw AuthError.UserExists(client.userEmail);
         }
 
         const newClient = new UserModel({ userEmail: email });
 
-        await authHelper.registerNewEmail(newClient.userID, newClient.userEmail);
+        await authHelper.registerNewEmail(
+            newClient.userID,
+            newClient.userEmail
+        );
 
         return newClient.userID;
     }
 
     // Verify user email
     async verifyEmail(userID, userVerifyCode) {
-        const client = await sqlRequest.getVerifyDataByEmail(userID);
+        const client = await sqlRequest.getVerifyDataForEmail(userID);
 
         if (!client.userID) {
             throw AuthError.UserNotExists();
@@ -39,7 +42,9 @@ class AuthRegistartion {
             throw AuthError.InvalidVerifyCode();
         }
 
-        client.emailIsActivate = await authHelper.activateEmail(client.userID);
+        authHelper.activateEmail(client.userID);
+        client.activateUserEmail();
+
         return client;
     }
 
@@ -51,14 +56,16 @@ class AuthRegistartion {
         });
 
         const client = clients.map((client) => {
-            return client.userID === registrationModel.userID;
+            if (client.userID === registrationModel.userID) {
+                return client;
+            }
         })[0];
 
         if (!client.userID) {
             throw AuthError.UserNotExists();
         }
 
-        if (client.emailIsActivate) {
+        if (!client.emailIsActivate) {
             throw AuthError.EmailNotActivate(client.userEmail);
         }
 
@@ -70,7 +77,7 @@ class AuthRegistartion {
             throw AuthError.UserExists(registrationModel.userName);
         }
 
-        client.divecModel.createNewDevice(headersForDevice);
+        client.deviceModel.createNewDevice(headersForDevice);
         await authHelper.registerNewClient(client, registrationModel);
 
         return client;
