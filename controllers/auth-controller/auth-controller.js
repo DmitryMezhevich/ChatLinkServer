@@ -2,7 +2,6 @@ const authRegistartion = require('../../services/auth/authRegistration-service')
 const auth = require('../../services/auth/auth-service');
 const UserDto = require('../../dtos/auth/user-dto');
 const RegistrationModel = require('../../models/auth/regitration-model');
-const DeviceModel = require('../../models/auth/device-model');
 
 class AuthController {
     // REGISTRATION
@@ -32,15 +31,14 @@ class AuthController {
 
     async registratonUser(req, res, next) {
         try {
-            const registrationModule = new RegistrationModel(req.body);
-            const deviceModule = new DeviceModel({
-                req,
-                ...registrationModule,
-            });
+            const registrationModel = new RegistrationModel(req.body);
 
             const client = await authRegistartion.createNewUser(
-                registrationModule,
-                deviceModule
+                registrationModel,
+                {
+                    userAgent: req.headers['user-agent'],
+                    xForwardedFor: req.headers['x-forwarded-for'],
+                }
             );
 
             res.json(new UserDto(client));
@@ -50,14 +48,15 @@ class AuthController {
     }
 
     //LOGIN, LOGOUT
+
     async login(req, res, next) {
         try {
             const { user, user_password: userPassword } = req.body;
-            const deviceModule = new DeviceModel({
-                req,
-            });
 
-            const client = await auth.login(user, userPassword, deviceModule);
+            const client = await auth.login(user, userPassword, {
+                userAgent: req.headers['user-agent'],
+                xForwardedFor: req.headers['x-forwarded-for'],
+            });
 
             res.json(new UserDto(client));
         } catch (error) {
@@ -73,6 +72,18 @@ class AuthController {
             const client = await auth.login2FA(deviceID, verificationCode);
 
             res.json(new UserDto(client));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async logout(req, res, next) {
+        try {
+            const deviceID = req.user.deviceID;
+
+            await auth.logout(deviceID);
+
+            res.send();
         } catch (error) {
             next(error);
         }

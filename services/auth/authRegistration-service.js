@@ -1,92 +1,79 @@
 const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper');
-const emalService = require('../email/email-service');
 const authHelper = require('./helpers/auth-helper');
 const AuthError = require('../../exceptions/auth-error');
+const UserModel = require('../../models/auth/user-model');
 
 class AuthRegistartion {
     // Registartion new user email
     async registrationEmail(email) {
-        let { userID, emailIsActivate } = await sqlRequest.getUser({
+        const user = await sqlRequest.getUser({
             userEmail: email,
         });
 
-        if (emailIsActivate) {
-            throw AuthError.UserExists(email);
+        if (user.emailIsActivate) {
+            throw AuthError.UserExists(user.userEmail);
         }
 
-        const verifyCode = await authHelper.generateVerificationCode();
+        const newClient = new UserModel({ userEmail: email });
 
-        if (emailIsActivate !== undefined && !emailIsActivate) {
-            await sqlRequest.apdateVerifyCodeForEmail(userID, verifyCode.hash);
-        }
+        await authHelper.registerNewEmail(newClient.userID, newClient.userEmail);
 
-        if (emailIsActivate === undefined) {
-            userID = await sqlRequest.registerNewEmail(email, verifyCode.hash);
-        }
-
-        await emalService.sendVerifyCodeForEmail(email, verifyCode.code);
-        return userID;
+        return newClient.userID;
     }
 
     // Verify user email
     async verifyEmail(userID, userVerifyCode) {
-        const verifyData = await sqlRequest.getVerifyDataByEmail(userID);
-        if (!verifyData) {
+        const client = await sqlRequest.getVerifyDataByEmail(userID);
+
+        if (!client.userID) {
             throw AuthError.UserNotExists();
         }
 
-        const { verification_code: verifyCode, created_at: createdAt } =
-            verifyData;
-
         const verify = await authHelper.verifyCode(
-            createdAt,
+            client.emailActivateModel.createdAt,
             userVerifyCode,
-            verifyCode
+            client.emailActivateModel.verificationCode
         );
 
         if (!verify) {
             throw AuthError.InvalidVerifyCode();
         }
 
-        const user = await sqlRequest.activateEmail(userID);
-        return user;
+        client.emailIsActivate = await authHelper.activateEmail(client.userID);
+        return client;
     }
 
     // Create new user with verify email
-    async createNewUser(registrationModule, deviceModule) {
-        const users = await sqlRequest.getUsers({
-            userID: registrationModule.userID,
-            userName: registrationModule.userName,
+    async createNewUser(registrationModel, headersForDevice) {
+        const clients = await sqlRequest.getUsers({
+            userID: registrationModel.userID,
+            userName: registrationModel.userName,
         });
 
-        if (users.length > 1) {
-            throw AuthError.UserExists(registrationModule.userName);
+        const client = clients.map((client) => {
+            return client.userID === registrationModel.userID;
+        })[0];
+
+        if (!client.userID) {
+            throw AuthError.UserNotExists();
         }
 
-        const userModel = users[0];
-
-        if (userModel.userName) {
-            throw AuthError.UserExists(userModel.userEmail);
+        if (client.emailIsActivate) {
+            throw AuthError.EmailNotActivate(client.userEmail);
         }
 
-        if (!userModel || !userModel.emailIsActivate) {
-            throw AuthError.EmailNotActivate(userModel.userEmail);
+        if (client.userName) {
+            throw AuthError.UserExists(client.userEmail);
         }
 
-        const { userPasswordHash, tokens } = await authHelper.getSecurityData(
-            registrationModule.userPassword,
-            userModel.userID,
-            deviceModule.deviceID
-        );
+        if (clients.length > 1) {
+            throw AuthError.UserExists(registrationModel.userName);
+        }
 
-        userModel.updatesUserInfo({
-            ...registrationModule,
-            userPasswordHash,
-        });
+        client.divecModel.createNewDevice(headersForDevice);
+        await authHelper.registerNewClient(client, registrationModel);
 
-        await sqlRequest.createNewUser(userModel, deviceModule, tokens);
-
-        return { ...userModel, ...tokens };
+        return client;
     }
 }
 

@@ -1,4 +1,4 @@
-module.exports = class RegistrationModul {
+module.exports = class RegistrationModel {
     userID;
     userName;
     userAvatarUrl;

@@ -1,15 +1,10 @@
-const sqlRequest = require('../../db/PostgreSQL/dbSQL-helpers/querys/requestSQL-helper');
 const authHelper = require('./helpers/auth-helper');
 const authRegistartion = require('./authRegistration-service');
 const AuthError = require('../../exceptions/auth-error');
-const emailService = require('../email/email-service');
 
 class AuthService {
-    async login(user, password, deviceModule) {
-        const client = await sqlRequest.getUser({
-            userEmail: user,
-            userName: user,
-        });
+    async login(user, password, headersForDevice) {
+        const client = await authHelper.getClient(user);
 
         if (!client) {
             throw AuthError.UserNotExists(user);
@@ -26,54 +21,50 @@ class AuthService {
 
         await authHelper.passwordCompare(password, client.userPasswordHash);
 
-        deviceModule.userID = client.userID;
-        await sqlRequest.createNewDevice(deviceModule);
+        client.deviceModel.createNewDevice(headersForDevice);
+        await authHelper.registerNewDevice(client.deviceModel);
 
         if (client.enable2FA) {
-            const verifyCode = await authHelper.generateVerificationCode();
-
-            await sqlRequest.apdateVerifyCodeFor2FA(
-                deviceModule.deviceID,
-                verifyCode.hash
+            await authHelper.updateVerifyCodeFor2FA(
+                client.deviceModel.deviceID,
+                client.userEmail
             );
 
-            await emailService.sendVerifyCodeForEmail(
-                client.userEmail,
-                verifyCode.code
-            );
+            client.cleareUserInfo();
 
-            client.deviceID = deviceModule.deviceID;
-            client.userName = null;
-            client.userEmail = null;
-            client.userAvatarURL = null;
             return client;
         }
+
+        client.tokenModel = await authHelper.updateRefreshToken(client);
+
+        return client;
     }
 
     async login2FA(deviceID, userVerifyCode) {
-        const verifyData = await sqlRequest.getVerifyDataBy2FA(deviceID);
+        const client = await authHelper.getData2FA(deviceID);
 
-        if (!verifyData) {
+        if (!client) {
             throw AuthError.UserNotExists();
         }
 
-        const { verification_code: verifyCode, created_at: createdAt } =
-            verifyData;
-
         const verify = await authHelper.verifyCode(
-            createdAt,
+            client.twoFAModel.createdAt,
             userVerifyCode,
-            verifyCode
+            client.twoFAModel.verificationCode
         );
 
         if (!verify) {
             throw AuthError.InvalidVerifyCode();
         }
 
-        
+        client.tokenModel = await authHelper.updateRefreshToken(client, true);
+
+        return client;
     }
 
-    async logout() {}
+    async logout(deviceID) {
+        await authHelper.removeDevice(deviceID);
+    }
 }
 
 module.exports = new AuthService();

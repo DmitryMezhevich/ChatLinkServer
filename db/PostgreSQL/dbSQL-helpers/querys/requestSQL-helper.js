@@ -41,17 +41,26 @@ class RequestSQLHelper {
         return rows[0];
     }
 
-    async insertRefreshToken(deviceID, token) {
-        await dbRequest(sqlQuery.insertRefreshToken, [deviceID, token]);
-    }
-
-    async deleteDevice(device_id) {
+    async insertRefreshToken(deviceID, token, removeData2FA = false) {
         try {
             await dbRequest(sqlQuery.begin);
-            await dbRequest(sqlQuery.deleteRefreshToken, [device_id]);
-            const { rows } = await dbRequest(sqlQuery.deleteDevice, [
-                device_id,
-            ]);
+            await dbRequest(sqlQuery.insertRefreshToken, [deviceID, token]);
+            if (removeData2FA) {
+                await dbRequest(sqlQuery.deleteVerifyCodeBy2FA, [deviceID]);
+            }
+            await dbRequest(sqlQuery.commit);
+        } catch (error) {
+            await dbRequest(sqlQuery.rollback);
+            throw error;
+        }
+    }
+
+    async deleteDevice(deviceID) {
+        try {
+            await dbRequest(sqlQuery.begin);
+            await dbRequest(sqlQuery.deleteRefreshToken, [deviceID]);
+            const { rows } = await dbRequest(sqlQuery.deleteDevice, [deviceID]);
+            await dbRequest(sqlQuery.deleteRefreshToken, [deviceID]);
             await dbRequest(sqlQuery.commit);
 
             return rows[0];
@@ -61,18 +70,16 @@ class RequestSQLHelper {
         }
     }
 
-    async registerNewEmail(email, hashVerifyCode) {
+    async registerNewEmail(userEmail, userID, hashVerifyCode) {
         try {
             await dbRequest(sqlQuery.begin);
-            const { rows } = await dbRequest(sqlQuery.insertNewEmail, [email]);
-            const userID = rows[0].user_id;
+            const { rows } = await dbRequest(sqlQuery.insertNewEmail, [userID, userEmail]);
             await dbRequest(sqlQuery.insertVerifyCodeByEmail, [
                 userID,
                 hashVerifyCode,
-            ]);
+            ])
             await dbRequest(sqlQuery.commit);
-
-            return userID;
+            return new UserModule(rows[0] ?? {});
         } catch (error) {
             await dbRequest(sqlQuery.rollback);
             throw error;
@@ -90,12 +97,14 @@ class RequestSQLHelper {
         const { rows } = await dbRequest(sqlQuery.getVerifyDataByEmail, [
             userID,
         ]);
-        return rows[0];
+        return new UserModule(rows[0] ?? {});
     }
 
     async getVerifyDataBy2FA(deviceID) {
-        const { rows } = await dbRequest(sqlQuery.getData2FA, [deviceID]);
-        return rows[0] ?? {};
+        const { rows } = await dbRequest(sqlQuery.getUserDataTogether2FA, [
+            deviceID,
+        ]);
+        return new UserModule(rows[0] || {});
     }
 
     async apdateVerifyCodeFor2FA(deviceID, hashVerifyCode) {
@@ -123,14 +132,14 @@ class RequestSQLHelper {
             await dbRequest(sqlQuery.deleteVerifyCodeByEmail, [userID]);
             const { rows } = await dbRequest(sqlQuery.activateEmail, [userID]);
             await dbRequest(sqlQuery.commit);
-            return new UserModule(rows[0] ?? {});
+            return rows[0];
         } catch (error) {
             await dbRequest(sqlQuery.rollback);
             throw error;
         }
     }
 
-    async createNewUser(user, device, tokens) {
+    async createNewUser(user) {
         try {
             await dbRequest(sqlQuery.begin);
             await dbRequest(
@@ -139,11 +148,11 @@ class RequestSQLHelper {
             );
             await dbRequest(
                 sqlQuery.createDevice,
-                device.convertToArrayForSQL()
+                user.deviceModel.convertToArrayForSQL()
             );
             await dbRequest(sqlQuery.insertRefreshToken, [
-                device.deviceID,
-                tokens.refreshToken,
+                user.deviceModel.deviceID,
+                user.tokensModel.refreshToken,
             ]);
             await dbRequest(sqlQuery.commit);
         } catch (error) {

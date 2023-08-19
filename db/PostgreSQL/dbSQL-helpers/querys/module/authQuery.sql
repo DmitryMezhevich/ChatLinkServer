@@ -17,20 +17,24 @@
                                 LIMIT 1;
 
     //
-    getData2FA:                 SELECT user_devices.*, users.*
+    getData2FA:                 SELECT * FROM device_2FA WHERE device_id = $1
+                                LIMIT 1;
+                                
+    //
+    getUserDataTogether2FA:     SELECT user_devices.*, users.*, device_2FA.*
                                 FROM user_devices
-                                JOIN user_devices ON user_devices.user_id = users.user_id 
-                                JOIN user_devices ON user_devices.device_id = device_2FA.device_id 
-                                WHERE user_devices.device_id = $1;
+                                JOIN users ON user_devices.user_id = users.user_id
+                                JOIN device_2FA ON user_devices.device_id = device_2FA.device_id
+                                WHERE user_devices.device_id = $1
 
 // INSERT
 
     //
-    insertNewEmail:             INSERT INTO users (user_email)
-                                VALUES ($1) RETURNING user_id;
+    insertNewEmail:             INSERT INTO users (user_id, user_email)
+                                VALUES ($1, $2) RETURNING *;
 
     //
-    insertVerifyCodeByEmail:    INSERT INTO user_email_activate (user_id, verification_code)
+    insertVerifyCodeByEmail:    INSERT INTO user_email_activate (user_id, activate_verification_code)
                                 VALUES ($1, $2);
 
     //
@@ -42,21 +46,21 @@
                                 VALUES ($1, $2);
 
     //
-    insertNew2FA:               INSERT INTO device_2FA (device_id, verification_code)
+    insertNew2FA:               INSERT INTO device_2FA (device_id, two_fa_verification_code)
                                 VALUES ($1, $2);
 
 // UPDATE
 
     //
     apdateVerificationCodeByEmail:      UPDATE user_email_activate 
-                                        SET verification_code = $2,
-                                            created_at = DEFAULT
+                                        SET activate_verification_code = $2,
+                                            activate_created_at = DEFAULT
                                         WHERE user_id = $1;
 
     //
     activateEmail:              UPDATE users
                                 SET user_email_isActivate = true
-                                WHERE user_id = $1 RETURNING *;
+                                WHERE user_id = $1 RETURNING user_email_isActivate;
     
     //
     createNewUser:              UPDATE users 
@@ -67,8 +71,8 @@
 
     //
     update2FA:                  UPDATE device_2FA 
-                                SET verification_code = $2,
-                                    created_at = DEFAULT
+                                SET two_fa_verification_code = $2,
+                                    two_fa_created_at = DEFAULT
                                 WHERE device_id = $1;
 
 // DELETE
@@ -81,6 +85,9 @@
 
     //
     deleteVerifyCodeByEmail:    DELETE FROM user_email_activate WHERE user_id = $1;
+
+    //
+    deleteVerifyCodeBy2FA:      DELETE FROM device_2fa WHERE device_id = $1;
 
 // TRANSACTION
 

@@ -1,19 +1,29 @@
 const { v4: uuidv4 } = require('uuid');
 
-module.exports = class DeviceModul {
-    userID;
+module.exports = class DeviceModel {
     deviceID;
+    userID;
     deviceName;
     deviceNameApp;
     deviceIP;
+    createdAt;
 
     constructor(module) {
-        this.userID = module.userID;
+        this.deviceID = module.device_id;
+        this.userID = module.user_id || module.userID;
+        this.deviceName = module.device_name;
+        this.deviceNameApp = module.device_name_app;
+        this.deviceIP = module.device_ip;
+        this.createdAt = module.device_created_at;
+    }
+
+    createNewDevice(headers) {
         this.deviceID = uuidv4();
-        const userAgent = module.req.headers['user-agent'].split(' ');
+        const userAgent = headers.userAgent.split(' ');
         this.deviceName = userAgent.shift();
         this.deviceNameApp = userAgent.join(' ');
-        this.deviceIP = module.req.headers['x-forwarded-for'].split(' ')[0];
+        this.deviceIP = headers.xForwardedFor.split(' ')[0];
+        return this;
     }
 
     convertToArrayForSQL() {
